@@ -4,8 +4,7 @@
 <head>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>Contractor Estimating Platform V5</title>
+<title>Contractor Platform V6</title>
 
 <style>
 
@@ -38,7 +37,7 @@ border-radius:6px;
 margin-top:10px;
 }
 
-.project{
+.card{
 border-bottom:1px solid #ddd;
 padding:10px 0;
 }
@@ -55,30 +54,28 @@ font-size:18px;
 
 <div class="container">
 
-<h2>Contractor Management Platform V5</h2>
+<h2>Contractor Business Platform V6</h2>
 
 <label>Client</label>
 <input id="client">
 
-<label>Project Name</label>
+<label>Project</label>
 <input id="project">
 
 <label>Region</label>
 
 <select id="region">
-
 <option value="1">National Average</option>
 <option value="0.95">North Carolina</option>
 <option value="0.93">South Carolina</option>
 <option value="1.05">Florida</option>
-<option value="0.9">Texas</option>
-
+<option value="0.90">Texas</option>
 </select>
 
-<label>Length (ft)</label>
+<label>Length</label>
 <input id="length" type="number">
 
-<label>Width (ft)</label>
+<label>Width</label>
 <input id="width" type="number">
 
 <label>Profit Margin</label>
@@ -92,27 +89,26 @@ font-size:18px;
 
 <div class="container">
 
-<h3>Material Takeoff</h3>
+<h3>Labor Estimate</h3>
+<div id="labor"></div>
 
+<h3>Material Takeoff</h3>
 <div id="materials"></div>
 
-<h3>Supplier Order List</h3>
-
+<h3>Supplier Order</h3>
 <div id="supplier"></div>
 
 </div>
 
 <div class="container">
 
-<h3>Subcontractor Management</h3>
+<h3>Subcontractors</h3>
 
-<input id="subName" placeholder="Subcontractor Name">
-
+<input id="subName" placeholder="Name">
 <input id="subTrade" placeholder="Trade">
+<input id="subBid" placeholder="Bid">
 
-<input id="subBid" placeholder="Bid Amount">
-
-<button onclick="addSub()">Add Subcontractor</button>
+<button onclick="addSub()">Add Sub</button>
 
 <div id="subs"></div>
 
@@ -120,11 +116,10 @@ font-size:18px;
 
 <div class="container">
 
-<h3>Job Schedule</h3>
+<h3>Project Schedule</h3>
 
-<input id="scheduleTask" placeholder="Task">
-
-<input id="scheduleDate" type="date">
+<input id="task" placeholder="Task">
+<input id="date" type="date">
 
 <button onclick="addTask()">Add Task</button>
 
@@ -135,20 +130,19 @@ font-size:18px;
 <div class="container">
 
 <h3>Job Notes</h3>
-
 <textarea id="notes"></textarea>
 
-<h3>Jobsite Photo</h3>
-
+<h3>Project Photo</h3>
 <input type="file" accept="image/*" capture="environment">
 
 </div>
 
 <div class="container">
 
-<h3>Invoice Generator</h3>
+<h3>Invoice / Proposal</h3>
 
-<button onclick="generateInvoice()">Generate Invoice</button>
+<button onclick="proposal()">Download Proposal</button>
+<button onclick="invoice()">Download Invoice</button>
 
 </div>
 
@@ -158,7 +152,7 @@ font-size:18px;
 
 <button onclick="saveProject()">Save Project</button>
 
-<h3>Saved Projects</h3>
+<h3>Projects</h3>
 
 <div id="projects"></div>
 
@@ -175,8 +169,8 @@ font-size:18px;
 <script>
 
 let estimateData={}
-let subcontractors=[]
-let schedule=[]
+let subs=[]
+let tasks=[]
 
 function estimate(){
 
@@ -185,6 +179,7 @@ let project=document.getElementById("project").value
 
 let length=parseFloat(document.getElementById("length").value)
 let width=parseFloat(document.getElementById("width").value)
+
 let margin=parseFloat(document.getElementById("margin").value)
 
 let region=parseFloat(document.getElementById("region").value)
@@ -217,11 +212,23 @@ document.getElementById("estimate").innerHTML=
 "<br>Bid Price: $"+bid.toFixed(2)+
 "<br>Profit: $"+profit.toFixed(2)
 
-materialTakeoff(length,width)
+labor(sf)
+
+takeoff(length,width)
 
 }
 
-function materialTakeoff(length,width){
+function labor(sf){
+
+let hours=sf*0.6
+
+document.getElementById("labor").innerHTML=
+
+"Labor Hours: "+hours.toFixed(0)
+
+}
+
+function takeoff(length,width){
 
 let perimeter=(length*2)+(width*2)
 
@@ -255,7 +262,7 @@ let name=document.getElementById("subName").value
 let trade=document.getElementById("subTrade").value
 let bid=document.getElementById("subBid").value
 
-subcontractors.push({name,trade,bid})
+subs.push({name,trade,bid})
 
 displaySubs()
 
@@ -265,12 +272,12 @@ function displaySubs(){
 
 let html=""
 
-subcontractors.forEach(s=>{
+subs.forEach(s=>{
 
 html+=
 
-"<div class='project'>"+
-s.name+" - "+s.trade+" - $"+s.bid+
+"<div class='card'>"+
+s.name+" | "+s.trade+" | $"+s.bid+
 "</div>"
 
 })
@@ -281,10 +288,10 @@ document.getElementById("subs").innerHTML=html
 
 function addTask(){
 
-let task=document.getElementById("scheduleTask").value
-let date=document.getElementById("scheduleDate").value
+let task=document.getElementById("task").value
+let date=document.getElementById("date").value
 
-schedule.push({task,date})
+tasks.push({task,date})
 
 displaySchedule()
 
@@ -294,11 +301,11 @@ function displaySchedule(){
 
 let html=""
 
-schedule.forEach(t=>{
+tasks.forEach(t=>{
 
 html+=
 
-"<div class='project'>"+
+"<div class='card'>"+
 t.task+" - "+t.date+
 "</div>"
 
@@ -308,16 +315,35 @@ document.getElementById("schedule").innerHTML=html
 
 }
 
-function generateInvoice(){
+function proposal(){
 
 let p=estimateData
 
-let text=
+download(
+
+"PROPOSAL\n\n"+
+"Client: "+p.client+
+"\nProject: "+p.project+
+"\nBid Price: $"+p.bid
+)
+
+}
+
+function invoice(){
+
+let p=estimateData
+
+download(
 
 "INVOICE\n\n"+
-"Client: "+p.client+"\n"+
-"Project: "+p.project+"\n"+
-"Bid Price: $"+p.bid
+"Client: "+p.client+
+"\nProject: "+p.project+
+"\nAmount Due: $"+p.bid
+)
+
+}
+
+function download(text){
 
 let blob=new Blob([text],{type:"text/plain"})
 
@@ -325,7 +351,7 @@ let link=document.createElement("a")
 
 link.href=URL.createObjectURL(blob)
 
-link.download="invoice.txt"
+link.download="document.txt"
 
 link.click()
 
@@ -358,10 +384,10 @@ profit+=p.profit
 
 html+=
 
-"<div class='project'>"+
+"<div class='card'>"+
 "<b>"+p.project+"</b><br>"+
-p.client+"<br>"+
-"$"+p.bid.toFixed(2)+" Bid"+
+p.client+
+"<br>$"+p.bid.toFixed(2)+
 "</div>"
 
 })
