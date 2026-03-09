@@ -5,7 +5,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Contractor Platform V8</title>
+<title>Contractor Platform V9</title>
 
 <style>
 
@@ -63,27 +63,27 @@ padding:10px 0;
 
 <body>
 
-<h2>Contractor Business Platform V8</h2>
+<h2>Contractor SaaS Platform V9</h2>
 
 <div class="dashboard">
 
 <div class="card">
-<b>Total Projects</b>
+<b>Projects</b>
 <div id="dashProjects"></div>
 </div>
 
 <div class="card">
-<b>Total Revenue</b>
+<b>Revenue</b>
 <div id="dashRevenue"></div>
 </div>
 
 <div class="card">
-<b>Total Profit</b>
+<b>Profit</b>
 <div id="dashProfit"></div>
 </div>
 
 <div class="card">
-<b>Active Projects</b>
+<b>Active Jobs</b>
 <div id="dashActive"></div>
 </div>
 
@@ -96,7 +96,7 @@ padding:10px 0;
 <label>Client</label>
 <input id="client">
 
-<label>Project Name</label>
+<label>Project</label>
 <input id="project">
 
 <label>Status</label>
@@ -149,6 +149,16 @@ padding:10px 0;
 
 <div class="container">
 
+<h3>AI Estimate Helper</h3>
+
+<button onclick="aiEstimate()">Auto Suggest Cost</button>
+
+<div id="ai"></div>
+
+</div>
+
+<div class="container">
+
 <h3>Task Manager</h3>
 
 <input id="task" placeholder="Task">
@@ -176,11 +186,9 @@ padding:10px 0;
 
 <div class="container">
 
-<h3>Job Notes</h3>
+<h3>Notes & Photo</h3>
 
 <textarea id="notes"></textarea>
-
-<h3>Project Photo</h3>
 
 <input type="file" accept="image/*" capture="environment">
 
@@ -200,6 +208,8 @@ padding:10px 0;
 <h3>Project Portfolio</h3>
 
 <button onclick="saveProject()">Save Project</button>
+
+<button onclick="cloudSync()">Sync to Cloud</button>
 
 <div id="projects"></div>
 
@@ -294,6 +304,16 @@ studs+" Studs"+
 
 }
 
+function aiEstimate(){
+
+let sf=document.getElementById("length").value*document.getElementById("width").value
+
+let suggested=sf*65
+
+document.getElementById("ai").innerHTML="AI Suggested Budget: $"+suggested.toFixed(0)
+
+}
+
 function addSub(){
 
 let name=document.getElementById("subName").value
@@ -384,6 +404,12 @@ projects.push(estimateData)
 localStorage.setItem("projects",JSON.stringify(projects))
 
 loadProjects()
+
+}
+
+function cloudSync(){
+
+alert("Cloud sync placeholder. Connect to backend API to enable multi-device syncing.")
 
 }
 
