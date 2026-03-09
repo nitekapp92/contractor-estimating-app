@@ -1,17 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Contractor Estimator</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contractor Estimating App</title>
+
 <style>
-body {font-family: Arial; padding: 20px;}
-input {width: 100%; padding: 10px; margin: 10px 0;}
-button {padding: 12px; background: #2c7be5; color:white; border:none;}
-.result {margin-top:20px; font-size:18px;}
+
+body{
+font-family:Arial;
+padding:20px;
+background:#f5f5f5;
+}
+
+.container{
+background:white;
+padding:20px;
+border-radius:10px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:10px 0;
+}
+
+button{
+width:100%;
+padding:12px;
+background:#2c7be5;
+color:white;
+border:none;
+border-radius:6px;
+font-size:16px;
+}
+
+.result{
+margin-top:20px;
+font-size:18px;
+}
+
+.section{
+margin-top:30px;
+}
+
 </style>
+
 </head>
 
 <body>
+
+<div class="container">
 
 <h2>Contractor Estimating Tool</h2>
 
@@ -21,46 +60,93 @@ button {padding: 12px; background: #2c7be5; color:white; border:none;}
 <label>Width (ft)</label>
 <input id="width" type="number">
 
-<label>Profit Margin (0.30)</label>
+<label>Profit Margin (example: 0.30)</label>
 <input id="margin" type="number">
 
-<button onclick="calculate()">Generate Estimate</button>
+<button onclick="estimate()">Generate Estimate</button>
 
-<div class="result" id="output"></div>
+<div class="result" id="estimateResult"></div>
+
+<div class="section">
+<h3>Material Takeoff</h3>
+<div id="materials"></div>
+</div>
+
+<div class="section">
+<h3>Supplier Order List</h3>
+<div id="supplier"></div>
+</div>
+
+</div>
 
 <script>
-function calculate(){
 
-let length = parseFloat(document.getElementById("length").value);
-let width = parseFloat(document.getElementById("width").value);
-let margin = parseFloat(document.getElementById("margin").value);
+function estimate(){
 
-let sf = length * width;
+let length=parseFloat(document.getElementById("length").value);
+let width=parseFloat(document.getElementById("width").value);
+let margin=parseFloat(document.getElementById("margin").value);
 
-let baseCost = 60;
-let region = 0.95;
+let sf=length*width;
 
-let costPerSF = baseCost * region;
+let baseCost=60;
+let regionMultiplier=0.95;
 
-let construction = sf * costPerSF;
+let costPerSF=baseCost*regionMultiplier;
 
-let contingency = construction * 0.07;
+let construction=sf*costPerSF;
 
-let overhead = 528;
+let contingency=construction*0.07;
 
-let total = construction + contingency + overhead;
+let overhead=528;
 
-let bid = total / (1 - margin);
+let totalCost=construction+contingency+overhead;
 
-let profit = bid - total;
+let bidPrice=totalCost/(1-margin);
 
-document.getElementById("output").innerHTML =
-"Square Footage: " + sf +
-"<br>Estimated Cost: $" + construction.toFixed(2) +
-"<br>Bid Price: $" + bid.toFixed(2) +
-"<br>Estimated Profit: $" + profit.toFixed(2);
+let profit=bidPrice-totalCost;
+
+document.getElementById("estimateResult").innerHTML=
+
+"Square Footage: "+sf+
+"<br>Estimated Construction Cost: $"+construction.toFixed(2)+
+"<br>Total Estimated Cost: $"+totalCost.toFixed(2)+
+"<br>Bid Price: $"+bidPrice.toFixed(2)+
+"<br>Estimated Profit: $"+profit.toFixed(2);
+
+materialTakeoff(length,width);
 
 }
+
+function materialTakeoff(length,width){
+
+let perimeter=(length*2)+(width*2);
+
+let studs=Math.round(perimeter/1.33);
+
+let osb=Math.ceil((length*width)/32);
+
+let concrete=((length*width)*0.037).toFixed(2);
+
+let shingles=Math.ceil((length*width)/30);
+
+document.getElementById("materials").innerHTML=
+
+"2x4 Studs: "+studs+
+"<br>OSB Sheets: "+osb+
+"<br>Concrete (CY): "+concrete+
+"<br>Shingle Bundles: "+shingles;
+
+document.getElementById("supplier").innerHTML=
+
+"Order List:"+
+"<br>"+studs+" - 2x4 Studs"+
+"<br>"+osb+" - OSB Sheets"+
+"<br>"+concrete+" CY Concrete"+
+"<br>"+shingles+" - Shingle Bundles";
+
+}
+
 </script>
 
 </body>
