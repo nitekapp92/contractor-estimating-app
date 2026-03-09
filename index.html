@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Contractor Estimator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {font-family: Arial; padding: 20px;}
+input {width: 100%; padding: 10px; margin: 10px 0;}
+button {padding: 12px; background: #2c7be5; color:white; border:none;}
+.result {margin-top:20px; font-size:18px;}
+</style>
+</head>
+
+<body>
+
+<h2>Contractor Estimating Tool</h2>
+
+<label>Length (ft)</label>
+<input id="length" type="number">
+
+<label>Width (ft)</label>
+<input id="width" type="number">
+
+<label>Profit Margin (0.30)</label>
+<input id="margin" type="number">
+
+<button onclick="calculate()">Generate Estimate</button>
+
+<div class="result" id="output"></div>
+
+<script>
+function calculate(){
+
+let length = parseFloat(document.getElementById("length").value);
+let width = parseFloat(document.getElementById("width").value);
+let margin = parseFloat(document.getElementById("margin").value);
+
+let sf = length * width;
+
+let baseCost = 60;
+let region = 0.95;
+
+let costPerSF = baseCost * region;
+
+let construction = sf * costPerSF;
+
+let contingency = construction * 0.07;
+
+let overhead = 528;
+
+let total = construction + contingency + overhead;
+
+let bid = total / (1 - margin);
+
+let profit = bid - total;
+
+document.getElementById("output").innerHTML =
+"Square Footage: " + sf +
+"<br>Estimated Cost: $" + construction.toFixed(2) +
+"<br>Bid Price: $" + bid.toFixed(2) +
+"<br>Estimated Profit: $" + profit.toFixed(2);
+
+}
+</script>
+
+</body>
+</html>
