@@ -5,7 +5,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Contractor Platform V7</title>
+<title>Contractor Platform V8</title>
 
 <style>
 
@@ -15,16 +15,9 @@ background:#eef1f5;
 padding:20px;
 }
 
-.container{
-background:white;
-padding:20px;
-border-radius:10px;
-margin-bottom:20px;
-}
-
 .dashboard{
 display:grid;
-grid-template-columns:repeat(3,1fr);
+grid-template-columns:repeat(4,1fr);
 gap:10px;
 margin-bottom:20px;
 }
@@ -33,13 +26,20 @@ margin-bottom:20px;
 background:white;
 padding:15px;
 border-radius:10px;
-box-shadow:0 2px 4px rgba(0,0,0,0.1);
+box-shadow:0 2px 5px rgba(0,0,0,0.1);
+}
+
+.container{
+background:white;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
 }
 
 input,select,textarea{
 width:100%;
 padding:10px;
-margin:5px 0;
+margin:6px 0;
 }
 
 button{
@@ -63,7 +63,7 @@ padding:10px 0;
 
 <body>
 
-<h2>Contractor SaaS Platform V7</h2>
+<h2>Contractor Business Platform V8</h2>
 
 <div class="dashboard">
 
@@ -82,11 +82,16 @@ padding:10px 0;
 <div id="dashProfit"></div>
 </div>
 
+<div class="card">
+<b>Active Projects</b>
+<div id="dashActive"></div>
+</div>
+
 </div>
 
 <div class="container">
 
-<h3>Create Project</h3>
+<h3>Estimate Builder</h3>
 
 <label>Client</label>
 <input id="client">
@@ -109,6 +114,12 @@ padding:10px 0;
 <option value="1.05">Florida</option>
 </select>
 
+<label>Base Cost / SF</label>
+<input id="baseCost" value="60">
+
+<label>Labor Hours / SF</label>
+<input id="laborRate" value="0.6">
+
 <label>Length</label>
 <input id="length" type="number">
 
@@ -129,28 +140,16 @@ padding:10px 0;
 <h3>Labor & Materials</h3>
 
 <div id="labor"></div>
+
 <div id="materials"></div>
+
 <div id="supplier"></div>
 
 </div>
 
 <div class="container">
 
-<h3>Subcontractors</h3>
-
-<input id="subName" placeholder="Name">
-<input id="subTrade" placeholder="Trade">
-<input id="subBid" placeholder="Bid">
-
-<button onclick="addSub()">Add Sub</button>
-
-<div id="subs"></div>
-
-</div>
-
-<div class="container">
-
-<h3>Schedule</h3>
+<h3>Task Manager</h3>
 
 <input id="task" placeholder="Task">
 <input id="date" type="date">
@@ -163,9 +162,25 @@ padding:10px 0;
 
 <div class="container">
 
-<h3>Notes & Photos</h3>
+<h3>Subcontractors</h3>
+
+<input id="subName" placeholder="Name">
+<input id="subTrade" placeholder="Trade">
+<input id="subBid" placeholder="Bid">
+
+<button onclick="addSub()">Add Subcontractor</button>
+
+<div id="subs"></div>
+
+</div>
+
+<div class="container">
+
+<h3>Job Notes</h3>
 
 <textarea id="notes"></textarea>
+
+<h3>Project Photo</h3>
 
 <input type="file" accept="image/*" capture="environment">
 
@@ -182,7 +197,7 @@ padding:10px 0;
 
 <div class="container">
 
-<h3>Projects</h3>
+<h3>Project Portfolio</h3>
 
 <button onclick="saveProject()">Save Project</button>
 
@@ -209,9 +224,11 @@ let margin=parseFloat(document.getElementById("margin").value)
 
 let region=parseFloat(document.getElementById("region").value)
 
-let sf=length*width
+let baseCost=parseFloat(document.getElementById("baseCost").value)
 
-let baseCost=60
+let laborRate=parseFloat(document.getElementById("laborRate").value)
+
+let sf=length*width
 
 let costPerSF=baseCost*region
 
@@ -235,19 +252,17 @@ document.getElementById("estimate").innerHTML=
 "<br>Bid Price: $"+bid.toFixed(2)+
 "<br>Profit: $"+profit.toFixed(2)
 
-labor(sf)
+labor(sf,laborRate)
 
 takeoff(length,width)
 
 }
 
-function labor(sf){
+function labor(sf,rate){
 
-let hours=sf*0.6
+let hours=sf*rate
 
-document.getElementById("labor").innerHTML=
-
-"Labor Hours: "+hours.toFixed(0)
+document.getElementById("labor").innerHTML="Labor Hours: "+hours.toFixed(0)
 
 }
 
@@ -334,14 +349,7 @@ function proposal(){
 
 let p=estimateData
 
-download(
-
-"PROPOSAL\n\n"+
-"Client: "+p.client+
-"\nProject: "+p.project+
-"\nBid Price: $"+p.bid
-
-)
+download("PROPOSAL\n\nClient: "+p.client+"\nProject: "+p.project+"\nBid: $"+p.bid)
 
 }
 
@@ -349,14 +357,7 @@ function invoice(){
 
 let p=estimateData
 
-download(
-
-"INVOICE\n\n"+
-"Client: "+p.client+
-"\nProject: "+p.project+
-"\nAmount Due: $"+p.bid
-
-)
+download("INVOICE\n\nClient: "+p.client+"\nProject: "+p.project+"\nAmount Due: $"+p.bid)
 
 }
 
@@ -393,11 +394,14 @@ let projects=JSON.parse(localStorage.getItem("projects")||"[]")
 let html=""
 let revenue=0
 let profit=0
+let active=0
 
 projects.forEach(p=>{
 
 revenue+=p.bid
 profit+=p.profit
+
+if(p.status=="Active") active++
 
 html+="<div class='project'><b>"+p.project+"</b><br>"+p.client+"<br>"+p.status+"<br>$"+p.bid.toFixed(2)+"</div>"
 
@@ -408,6 +412,7 @@ document.getElementById("projects").innerHTML=html
 document.getElementById("dashProjects").innerHTML=projects.length
 document.getElementById("dashRevenue").innerHTML="$"+revenue.toFixed(0)
 document.getElementById("dashProfit").innerHTML="$"+profit.toFixed(0)
+document.getElementById("dashActive").innerHTML=active
 
 }
 
