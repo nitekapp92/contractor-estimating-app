@@ -4,7 +4,8 @@
 <head>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Contractor Platform V6</title>
+
+<title>Contractor Platform V7</title>
 
 <style>
 
@@ -21,10 +22,24 @@ border-radius:10px;
 margin-bottom:20px;
 }
 
+.dashboard{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+margin-bottom:20px;
+}
+
+.card{
+background:white;
+padding:15px;
+border-radius:10px;
+box-shadow:0 2px 4px rgba(0,0,0,0.1);
+}
+
 input,select,textarea{
 width:100%;
 padding:10px;
-margin:6px 0;
+margin:5px 0;
 }
 
 button{
@@ -37,13 +52,9 @@ border-radius:6px;
 margin-top:10px;
 }
 
-.card{
+.project{
 border-bottom:1px solid #ddd;
 padding:10px 0;
-}
-
-.dashboard{
-font-size:18px;
 }
 
 </style>
@@ -52,24 +63,50 @@ font-size:18px;
 
 <body>
 
+<h2>Contractor SaaS Platform V7</h2>
+
+<div class="dashboard">
+
+<div class="card">
+<b>Total Projects</b>
+<div id="dashProjects"></div>
+</div>
+
+<div class="card">
+<b>Total Revenue</b>
+<div id="dashRevenue"></div>
+</div>
+
+<div class="card">
+<b>Total Profit</b>
+<div id="dashProfit"></div>
+</div>
+
+</div>
+
 <div class="container">
 
-<h2>Contractor Business Platform V6</h2>
+<h3>Create Project</h3>
 
 <label>Client</label>
 <input id="client">
 
-<label>Project</label>
+<label>Project Name</label>
 <input id="project">
 
-<label>Region</label>
+<label>Status</label>
+<select id="status">
+<option>Estimate</option>
+<option>Active</option>
+<option>Completed</option>
+</select>
 
+<label>Region</label>
 <select id="region">
-<option value="1">National Average</option>
+<option value="1">National</option>
 <option value="0.95">North Carolina</option>
 <option value="0.93">South Carolina</option>
 <option value="1.05">Florida</option>
-<option value="0.90">Texas</option>
 </select>
 
 <label>Length</label>
@@ -78,7 +115,7 @@ font-size:18px;
 <label>Width</label>
 <input id="width" type="number">
 
-<label>Profit Margin</label>
+<label>Margin</label>
 <input id="margin" type="number">
 
 <button onclick="estimate()">Generate Estimate</button>
@@ -89,13 +126,10 @@ font-size:18px;
 
 <div class="container">
 
-<h3>Labor Estimate</h3>
+<h3>Labor & Materials</h3>
+
 <div id="labor"></div>
-
-<h3>Material Takeoff</h3>
 <div id="materials"></div>
-
-<h3>Supplier Order</h3>
 <div id="supplier"></div>
 
 </div>
@@ -116,7 +150,7 @@ font-size:18px;
 
 <div class="container">
 
-<h3>Project Schedule</h3>
+<h3>Schedule</h3>
 
 <input id="task" placeholder="Task">
 <input id="date" type="date">
@@ -129,17 +163,17 @@ font-size:18px;
 
 <div class="container">
 
-<h3>Job Notes</h3>
+<h3>Notes & Photos</h3>
+
 <textarea id="notes"></textarea>
 
-<h3>Project Photo</h3>
 <input type="file" accept="image/*" capture="environment">
 
 </div>
 
 <div class="container">
 
-<h3>Invoice / Proposal</h3>
+<h3>Documents</h3>
 
 <button onclick="proposal()">Download Proposal</button>
 <button onclick="invoice()">Download Invoice</button>
@@ -148,21 +182,11 @@ font-size:18px;
 
 <div class="container">
 
-<h3>Save Project</h3>
+<h3>Projects</h3>
 
 <button onclick="saveProject()">Save Project</button>
 
-<h3>Projects</h3>
-
 <div id="projects"></div>
-
-</div>
-
-<div class="container">
-
-<h3>Business Dashboard</h3>
-
-<div id="dashboard" class="dashboard"></div>
 
 </div>
 
@@ -176,6 +200,7 @@ function estimate(){
 
 let client=document.getElementById("client").value
 let project=document.getElementById("project").value
+let status=document.getElementById("status").value
 
 let length=parseFloat(document.getElementById("length").value)
 let width=parseFloat(document.getElementById("width").value)
@@ -202,13 +227,11 @@ let bid=total/(1-margin)
 
 let profit=bid-total
 
-estimateData={client,project,sf,bid,profit}
+estimateData={client,project,status,sf,bid,profit}
 
 document.getElementById("estimate").innerHTML=
 
 "Square Footage: "+sf+
-"<br>Construction Cost: $"+construction.toFixed(2)+
-"<br>Total Cost: $"+total.toFixed(2)+
 "<br>Bid Price: $"+bid.toFixed(2)+
 "<br>Profit: $"+profit.toFixed(2)
 
@@ -250,7 +273,7 @@ document.getElementById("materials").innerHTML=
 document.getElementById("supplier").innerHTML=
 
 studs+" Studs"+
-"<br>"+osb+" OSB Sheets"+
+"<br>"+osb+" OSB"+
 "<br>"+concrete+" CY Concrete"+
 "<br>"+shingles+" Shingles"
 
@@ -274,11 +297,7 @@ let html=""
 
 subs.forEach(s=>{
 
-html+=
-
-"<div class='card'>"+
-s.name+" | "+s.trade+" | $"+s.bid+
-"</div>"
+html+="<div class='project'>"+s.name+" | "+s.trade+" | $"+s.bid+"</div>"
 
 })
 
@@ -303,11 +322,7 @@ let html=""
 
 tasks.forEach(t=>{
 
-html+=
-
-"<div class='card'>"+
-t.task+" - "+t.date+
-"</div>"
+html+="<div class='project'>"+t.task+" - "+t.date+"</div>"
 
 })
 
@@ -325,6 +340,7 @@ download(
 "Client: "+p.client+
 "\nProject: "+p.project+
 "\nBid Price: $"+p.bid
+
 )
 
 }
@@ -339,6 +355,7 @@ download(
 "Client: "+p.client+
 "\nProject: "+p.project+
 "\nAmount Due: $"+p.bid
+
 )
 
 }
@@ -382,23 +399,15 @@ projects.forEach(p=>{
 revenue+=p.bid
 profit+=p.profit
 
-html+=
-
-"<div class='card'>"+
-"<b>"+p.project+"</b><br>"+
-p.client+
-"<br>$"+p.bid.toFixed(2)+
-"</div>"
+html+="<div class='project'><b>"+p.project+"</b><br>"+p.client+"<br>"+p.status+"<br>$"+p.bid.toFixed(2)+"</div>"
 
 })
 
 document.getElementById("projects").innerHTML=html
 
-document.getElementById("dashboard").innerHTML=
-
-"Projects: "+projects.length+
-"<br>Total Revenue: $"+revenue.toFixed(2)+
-"<br>Total Profit: $"+profit.toFixed(2)
+document.getElementById("dashProjects").innerHTML=projects.length
+document.getElementById("dashRevenue").innerHTML="$"+revenue.toFixed(0)
+document.getElementById("dashProfit").innerHTML="$"+profit.toFixed(0)
 
 }
 
