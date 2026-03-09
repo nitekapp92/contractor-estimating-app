@@ -5,9 +5,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Contractor Estimating Platform V4</title>
-
-<link rel="manifest" href="manifest.json">
+<title>Contractor Estimating Platform V5</title>
 
 <style>
 
@@ -27,7 +25,7 @@ margin-bottom:20px;
 input,select,textarea{
 width:100%;
 padding:10px;
-margin:5px 0;
+margin:6px 0;
 }
 
 button{
@@ -45,6 +43,10 @@ border-bottom:1px solid #ddd;
 padding:10px 0;
 }
 
+.dashboard{
+font-size:18px;
+}
+
 </style>
 
 </head>
@@ -53,7 +55,7 @@ padding:10px 0;
 
 <div class="container">
 
-<h2>Contractor Estimating Platform V4</h2>
+<h2>Contractor Management Platform V5</h2>
 
 <label>Client</label>
 <input id="client">
@@ -79,7 +81,7 @@ padding:10px 0;
 <label>Width (ft)</label>
 <input id="width" type="number">
 
-<label>Margin</label>
+<label>Profit Margin</label>
 <input id="margin" type="number">
 
 <button onclick="estimate()">Generate Estimate</button>
@@ -102,13 +104,43 @@ padding:10px 0;
 
 <div class="container">
 
-<h3>Jobsite Photo</h3>
+<h3>Subcontractor Management</h3>
 
-<input type="file" accept="image/*" capture="environment">
+<input id="subName" placeholder="Subcontractor Name">
+
+<input id="subTrade" placeholder="Trade">
+
+<input id="subBid" placeholder="Bid Amount">
+
+<button onclick="addSub()">Add Subcontractor</button>
+
+<div id="subs"></div>
+
+</div>
+
+<div class="container">
+
+<h3>Job Schedule</h3>
+
+<input id="scheduleTask" placeholder="Task">
+
+<input id="scheduleDate" type="date">
+
+<button onclick="addTask()">Add Task</button>
+
+<div id="schedule"></div>
+
+</div>
+
+<div class="container">
 
 <h3>Job Notes</h3>
 
 <textarea id="notes"></textarea>
+
+<h3>Jobsite Photo</h3>
+
+<input type="file" accept="image/*" capture="environment">
 
 </div>
 
@@ -136,13 +168,15 @@ padding:10px 0;
 
 <h3>Business Dashboard</h3>
 
-<div id="dashboard"></div>
+<div id="dashboard" class="dashboard"></div>
 
 </div>
 
 <script>
 
 let estimateData={}
+let subcontractors=[]
+let schedule=[]
 
 function estimate(){
 
@@ -173,9 +207,7 @@ let bid=total/(1-margin)
 
 let profit=bid-total
 
-estimateData={
-client,project,sf,construction,total,bid,profit
-}
+estimateData={client,project,sf,bid,profit}
 
 document.getElementById("estimate").innerHTML=
 
@@ -217,6 +249,65 @@ studs+" Studs"+
 
 }
 
+function addSub(){
+
+let name=document.getElementById("subName").value
+let trade=document.getElementById("subTrade").value
+let bid=document.getElementById("subBid").value
+
+subcontractors.push({name,trade,bid})
+
+displaySubs()
+
+}
+
+function displaySubs(){
+
+let html=""
+
+subcontractors.forEach(s=>{
+
+html+=
+
+"<div class='project'>"+
+s.name+" - "+s.trade+" - $"+s.bid+
+"</div>"
+
+})
+
+document.getElementById("subs").innerHTML=html
+
+}
+
+function addTask(){
+
+let task=document.getElementById("scheduleTask").value
+let date=document.getElementById("scheduleDate").value
+
+schedule.push({task,date})
+
+displaySchedule()
+
+}
+
+function displaySchedule(){
+
+let html=""
+
+schedule.forEach(t=>{
+
+html+=
+
+"<div class='project'>"+
+t.task+" - "+t.date+
+"</div>"
+
+})
+
+document.getElementById("schedule").innerHTML=html
+
+}
+
 function generateInvoice(){
 
 let p=estimateData
@@ -226,7 +317,7 @@ let text=
 "INVOICE\n\n"+
 "Client: "+p.client+"\n"+
 "Project: "+p.project+"\n"+
-"Bid Price: $"+p.bid.toFixed(2)
+"Bid Price: $"+p.bid
 
 let blob=new Blob([text],{type:"text/plain"})
 
@@ -257,7 +348,6 @@ function loadProjects(){
 let projects=JSON.parse(localStorage.getItem("projects")||"[]")
 
 let html=""
-
 let revenue=0
 let profit=0
 
