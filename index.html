@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Contractor Estimating Platform</title>
+
+<title>Contractor Estimating Platform V4</title>
+
+<link rel="manifest" href="manifest.json">
 
 <style>
 
 body{
 font-family:Arial;
-background:#f2f2f2;
+background:#eef1f5;
 padding:20px;
 }
 
@@ -20,10 +24,10 @@ border-radius:10px;
 margin-bottom:20px;
 }
 
-input{
+input,select,textarea{
 width:100%;
 padding:10px;
-margin:6px 0;
+margin:5px 0;
 }
 
 button{
@@ -33,15 +37,6 @@ background:#2c7be5;
 color:white;
 border:none;
 border-radius:6px;
-margin-top:10px;
-}
-
-.section{
-margin-top:20px;
-}
-
-.result{
-font-size:18px;
 margin-top:10px;
 }
 
@@ -58,13 +53,25 @@ padding:10px 0;
 
 <div class="container">
 
-<h2>Contractor Estimating Platform</h2>
+<h2>Contractor Estimating Platform V4</h2>
 
-<label>Client Name</label>
+<label>Client</label>
 <input id="client">
 
 <label>Project Name</label>
 <input id="project">
+
+<label>Region</label>
+
+<select id="region">
+
+<option value="1">National Average</option>
+<option value="0.95">North Carolina</option>
+<option value="0.93">South Carolina</option>
+<option value="1.05">Florida</option>
+<option value="0.9">Texas</option>
+
+</select>
 
 <label>Length (ft)</label>
 <input id="length" type="number">
@@ -72,22 +79,44 @@ padding:10px 0;
 <label>Width (ft)</label>
 <input id="width" type="number">
 
-<label>Margin (example 0.30)</label>
+<label>Margin</label>
 <input id="margin" type="number">
 
 <button onclick="estimate()">Generate Estimate</button>
 
-<div class="result" id="estimate"></div>
+<div id="estimate"></div>
 
 </div>
 
 <div class="container">
 
 <h3>Material Takeoff</h3>
+
 <div id="materials"></div>
 
 <h3>Supplier Order List</h3>
+
 <div id="supplier"></div>
+
+</div>
+
+<div class="container">
+
+<h3>Jobsite Photo</h3>
+
+<input type="file" accept="image/*" capture="environment">
+
+<h3>Job Notes</h3>
+
+<textarea id="notes"></textarea>
+
+</div>
+
+<div class="container">
+
+<h3>Invoice Generator</h3>
+
+<button onclick="generateInvoice()">Generate Invoice</button>
 
 </div>
 
@@ -105,9 +134,9 @@ padding:10px 0;
 
 <div class="container">
 
-<h3>Generate Client Proposal</h3>
+<h3>Business Dashboard</h3>
 
-<button onclick="generatePDF()">Download Proposal PDF</button>
+<div id="dashboard"></div>
 
 </div>
 
@@ -124,10 +153,11 @@ let length=parseFloat(document.getElementById("length").value)
 let width=parseFloat(document.getElementById("width").value)
 let margin=parseFloat(document.getElementById("margin").value)
 
+let region=parseFloat(document.getElementById("region").value)
+
 let sf=length*width
 
 let baseCost=60
-let region=0.95
 
 let costPerSF=baseCost*region
 
@@ -144,7 +174,7 @@ let bid=total/(1-margin)
 let profit=bid-total
 
 estimateData={
-client,project,length,width,sf,construction,total,bid,profit
+client,project,sf,construction,total,bid,profit
 }
 
 document.getElementById("estimate").innerHTML=
@@ -153,7 +183,7 @@ document.getElementById("estimate").innerHTML=
 "<br>Construction Cost: $"+construction.toFixed(2)+
 "<br>Total Cost: $"+total.toFixed(2)+
 "<br>Bid Price: $"+bid.toFixed(2)+
-"<br>Estimated Profit: $"+profit.toFixed(2)
+"<br>Profit: $"+profit.toFixed(2)
 
 materialTakeoff(length,width)
 
@@ -173,8 +203,8 @@ let shingles=Math.ceil((length*width)/30)
 
 document.getElementById("materials").innerHTML=
 
-"2x4 Studs: "+studs+
-"<br>OSB Sheets: "+osb+
+"Studs: "+studs+
+"<br>OSB: "+osb+
 "<br>Concrete CY: "+concrete+
 "<br>Shingles: "+shingles
 
@@ -185,7 +215,28 @@ studs+" Studs"+
 "<br>"+concrete+" CY Concrete"+
 "<br>"+shingles+" Shingles"
 
-estimateData.materials={studs,osb,concrete,shingles}
+}
+
+function generateInvoice(){
+
+let p=estimateData
+
+let text=
+
+"INVOICE\n\n"+
+"Client: "+p.client+"\n"+
+"Project: "+p.project+"\n"+
+"Bid Price: $"+p.bid.toFixed(2)
+
+let blob=new Blob([text],{type:"text/plain"})
+
+let link=document.createElement("a")
+
+link.href=URL.createObjectURL(blob)
+
+link.download="invoice.txt"
+
+link.click()
 
 }
 
@@ -207,7 +258,13 @@ let projects=JSON.parse(localStorage.getItem("projects")||"[]")
 
 let html=""
 
+let revenue=0
+let profit=0
+
 projects.forEach(p=>{
+
+revenue+=p.bid
+profit+=p.profit
 
 html+=
 
@@ -221,32 +278,11 @@ p.client+"<br>"+
 
 document.getElementById("projects").innerHTML=html
 
-}
+document.getElementById("dashboard").innerHTML=
 
-function generatePDF(){
-
-let p=estimateData
-
-let text=
-
-"PROJECT PROPOSAL\n\n"+
-"Client: "+p.client+"\n"+
-"Project: "+p.project+"\n\n"+
-"Square Footage: "+p.sf+"\n"+
-"Construction Cost: $"+p.construction.toFixed(2)+"\n"+
-"Total Cost: $"+p.total.toFixed(2)+"\n"+
-"Bid Price: $"+p.bid.toFixed(2)+"\n"+
-"Estimated Profit: $"+p.profit.toFixed(2)
-
-let blob=new Blob([text],{type:"text/plain"})
-
-let link=document.createElement("a")
-
-link.href=URL.createObjectURL(blob)
-
-link.download="proposal.txt"
-
-link.click()
+"Projects: "+projects.length+
+"<br>Total Revenue: $"+revenue.toFixed(2)+
+"<br>Total Profit: $"+profit.toFixed(2)
 
 }
 
@@ -255,4 +291,5 @@ loadProjects()
 </script>
 
 </body>
+
 </html>
